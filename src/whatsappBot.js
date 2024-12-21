@@ -1,5 +1,4 @@
 const { chromium } = require('playwright');
-const OpenAI = require('openai');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -7,9 +6,6 @@ class WhatsAppBot {
     constructor() {
         this.browser = null;
         this.page = null;
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
         // Define the path for storing user data
         this.userDataDir = path.join(process.cwd(), 'whatsapp-session');
         console.log('WhatsAppBot instance created');
@@ -152,40 +148,6 @@ class WhatsAppBot {
             console.error('Error getting messages:', {
                 error: error.message,
                 requestedCount: count
-            });
-            throw error;
-        }
-    }
-
-    async generateAIResponse(messages) {
-        try {
-            console.log('Preparing conversation for AI...');
-            const conversation = messages.map(msg => ({
-                role: msg.isOutgoing ? 'assistant' : 'user',
-                content: msg.text
-            }));
-            console.log(`Prepared ${conversation.length} messages for AI`);
-            console.log(conversation);
-
-            console.log('Requesting AI response...');
-            const response = await this.openai.chat.completions.create({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are having a WhatsApp conversation. Respond naturally and in the same style as the previous messages. Keep responses concise and conversational."
-                    },
-                    ...conversation,
-                ],
-                max_tokens: 150
-            });
-            console.log('Received AI response successfully');
-
-            return response.choices[0].message.content;
-        } catch (error) {
-            console.error('Error generating AI response:', {
-                error: error.message,
-                messageCount: messages.length
             });
             throw error;
         }

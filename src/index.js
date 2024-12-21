@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const WhatsAppBot = require('./whatsappBot');
+const AIHandler = require('./aiHandler');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -9,9 +10,18 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Initialize WhatsApp bot
+// Initialize WhatsApp bot and AI Handler
 let whatsappBot = null;
+let aiHandler = null;
 let monitoringActive = false;
+
+// Add debug logging
+console.log('Environment variables loaded:', {
+    endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+    apiVersion: process.env.AZURE_OPENAI_API_VERSION,
+    deploymentName: process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
+    hasApiKey: !!process.env.AZURE_OPENAI_API_KEY
+});
 
 // Add session directory cleanup on process exit
 process.on('SIGINT', async () => {
@@ -27,6 +37,7 @@ async function initializeBot() {
         console.log('Starting bot initialization...');
         console.log('Creating new WhatsAppBot instance...');
         whatsappBot = new WhatsAppBot();
+        aiHandler = new AIHandler();
         
         console.log('Initializing WhatsApp connection...');
         await whatsappBot.initialize();
@@ -62,7 +73,7 @@ async function startMessageMonitoring() {
 
             if (messages.length > 0) {
                 console.log('Generating AI response...');
-                const aiResponse = await whatsappBot.generateAIResponse(messages);
+                const aiResponse = await aiHandler.generateResponse(messages);
                 console.log('AI response generated:', aiResponse);
 
                 console.log('Sending AI response...');
@@ -79,7 +90,7 @@ async function startMessageMonitoring() {
         console.error('Error in message monitoring:', {
             error: error.message,
             step: error.message.includes('getLastMessages') ? 'fetching messages' :
-                  error.message.includes('generateAIResponse') ? 'generating response' :
+                  error.message.includes('generateResponse') ? 'generating response' :
                   error.message.includes('sendMessage') ? 'sending message' : 'unknown'
         });
         monitoringActive = false;
@@ -90,7 +101,7 @@ async function startMessageMonitoring() {
 app.get('/status', (req, res) => {
     console.log('Status endpoint called');
     const status = {
-        botInitialized: whatsappBot !== null,
+        botInitialized: whatsappBot !== null && aiHandler !== null,
         monitoringActive: monitoringActive
     };
     console.log('Current status:', status);
@@ -105,6 +116,7 @@ app.post('/restart', async (req, res) => {
             monitoringActive = false;
             await whatsappBot.close();
             whatsappBot = null;
+            aiHandler = null;
         }
         
         console.log('Initializing new bot instance...');
