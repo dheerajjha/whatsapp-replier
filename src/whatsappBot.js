@@ -74,13 +74,30 @@ class WhatsAppBot {
             
             // Add a small delay to let search results load
             console.log('Waiting for search results to load...');
-            await this.page.waitForTimeout(2000);
+            await this.page.waitForTimeout(5000);
             
-            // Click the first contact using the successful selector
-            console.log('Attempting to find first contact...');
-            const contactSelector = 'div[role="listitem"] div._ak72';
-            await this.page.waitForSelector(contactSelector);
-            await this.page.click(contactSelector);
+            // Find all contacts and match the exact name
+            console.log('Looking for contact with exact name match...');
+            const contacts = await this.page.$$('div[role="listitem"]');
+            let targetContact = null;
+
+            for (const contact of contacts) {
+                const nameElement = await contact.$('span[title]');
+                if (nameElement) {
+                    const title = await nameElement.getAttribute('title');
+                    if (title && title.toLowerCase() === contactName.toLowerCase()) {
+                        targetContact = contact;
+                        break;
+                    }
+                }
+            }
+
+            if (!targetContact) {
+                throw new Error(`Contact "${contactName}" not found in search results`);
+            }
+
+            console.log(`Found contact: ${contactName}`);
+            await targetContact.click();
             console.log('Successfully clicked contact');
 
             // Wait for chat to load with the new selector
@@ -88,15 +105,11 @@ class WhatsAppBot {
             const chatInputSelector = 'div[contenteditable="true"][role="textbox"][data-lexical-editor="true"]';
             await this.page.waitForSelector(chatInputSelector);
             console.log('Chat loaded successfully');
-
-            // Send initial "Hi" message using Cmd+Enter
-            await this.sendMessage("Hi");
-            console.log('Sent initial greeting message');
         } catch (error) {
             console.error('Error finding/opening chat:', {
                 contact: contactName,
                 step: error.message.includes('Search or start new chat') ? 'clicking search' :
-                      error.message.includes('_ak72') ? 'finding contact' :
+                      error.message.includes('not found in search results') ? 'finding contact' :
                       error.message.includes('textbox') ? 'loading chat' : 'unknown',
                 error: error.message
             });
