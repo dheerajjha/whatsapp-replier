@@ -45,8 +45,8 @@ async function initializeBot() {
         console.log(`Finding and opening chat with ${process.env.TARGET_CONTACT_NAME}...`);
         await whatsappBot.findAndOpenChat(process.env.TARGET_CONTACT_NAME);
         
-        console.log('Sending initial greeting message...');
-        await whatsappBot.sendMessage('Hi');
+        // console.log('Sending initial greeting message...');
+        // await whatsappBot.sendMessage('Hi');
         
         console.log('Starting message monitoring loop...');
         if (!monitoringActive) {
@@ -66,28 +66,44 @@ async function initializeBot() {
 async function startMessageMonitoring() {
     try {
         console.log('Starting message monitoring cycle...');
+        let lastMessageCount = 0;
+        let lastMessageText = '';
+
         while (monitoringActive) {
+            const currentTime = new Date().toISOString();
+            console.log(`[${currentTime}] Checking for new messages...`);
+            
             console.log('Fetching last messages...');
             const messages = await whatsappBot.getLastMessages(50);
-            console.log(`Retrieved ${messages.length} messages`);
+            
+            // Check if there are new messages and if the last message is from Person A (not the bot)
+            const hasNewMessages = messages.length > lastMessageCount;
+            const lastMessage = messages[messages.length - 1];
+            const isNewPersonAMessage = hasNewMessages && 
+                                      !lastMessage.isOutgoing && 
+                                      lastMessage.text !== lastMessageText;
 
-            if (messages.length > 0) {
+            if (isNewPersonAMessage) {
+                console.log(`[${currentTime}] New message detected from Person A:`, lastMessage.text);
+                lastMessageCount = messages.length;
+                lastMessageText = lastMessage.text;
+
                 console.log('Generating AI response...');
                 const aiResponse = await aiHandler.generateResponse(messages);
                 console.log('AI response generated:', aiResponse);
 
                 console.log('Sending AI response...');
                 await whatsappBot.sendMessage(aiResponse);
-                console.log('AI response sent successfully');
+                console.log(`[${currentTime}] AI response sent successfully`);
             } else {
-                console.log('No messages found to process');
+                console.log(`[${currentTime}] No new messages from Person A`);
             }
             
-            // Wait for 1 minute before next check
-            await new Promise(resolve => setTimeout(resolve, 60000));
+            // Wait for 2 seconds before next check (reduced from 5 seconds)
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
     } catch (error) {
-        console.error('Error in message monitoring:', {
+        console.error(`[${new Date().toISOString()}] Error in message monitoring:`, {
             error: error.message,
             step: error.message.includes('getLastMessages') ? 'fetching messages' :
                   error.message.includes('generateResponse') ? 'generating response' :

@@ -16,8 +16,9 @@ class WhatsAppBot {
             console.log('Launching browser...');
             // Launch browser with persistent context
             this.browser = await chromium.launchPersistentContext(this.userDataDir, {
-                headless: false,
-                viewport: { width: 1280, height: 800 }
+                headless: true,
+                viewport: { width: 1280, height: 800 },
+                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36'
             });
 
             console.log('Browser launched successfully');
@@ -129,11 +130,14 @@ class WhatsAppBot {
                     const element = messageElements[i];
                     const text = element.querySelector('span.selectable-text')?.innerText;
                     const isOutgoing = element.classList.contains('message-out');
+                    const timestamp = element.querySelector('div[data-pre-plain-text]')?.getAttribute('data-pre-plain-text') || '';
                     
                     if (text) {
                         messages.unshift({
                             text,
-                            isOutgoing
+                            isOutgoing,
+                            timestamp,
+                            sender: isOutgoing ? 'Person B' : 'Person A'
                         });
                     }
                 }
@@ -143,6 +147,9 @@ class WhatsAppBot {
             }, count);
             
             console.log(`Successfully retrieved ${messages.length} messages`);
+            if (messages.length > 0) {
+                console.log(`Last message ${messages[messages.length - 1].text}`);
+            }
             return messages;
         } catch (error) {
             console.error('Error getting messages:', {
