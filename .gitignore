@@ -25,3 +25,4 @@ build/
 
 # Playwright specific
 playwright-report/
+/whatsapp-session

@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const WhatsAppBot = require('./whatsappBot');
+const fs = require('fs').promises;
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,6 +12,15 @@ app.use(express.json());
 // Initialize WhatsApp bot
 let whatsappBot = null;
 let monitoringActive = false;
+
+// Add session directory cleanup on process exit
+process.on('SIGINT', async () => {
+    console.log('Received SIGINT. Cleaning up...');
+    if (whatsappBot) {
+        await whatsappBot.close();
+    }
+    process.exit(0);
+});
 
 async function initializeBot() {
     try {

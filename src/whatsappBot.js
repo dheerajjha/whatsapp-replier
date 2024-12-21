@@ -1,5 +1,7 @@
 const { chromium } = require('playwright');
 const OpenAI = require('openai');
+const path = require('path');
+const fs = require('fs').promises;
 
 class WhatsAppBot {
     constructor() {
@@ -8,26 +10,39 @@ class WhatsAppBot {
         this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
+        // Define the path for storing user data
+        this.userDataDir = path.join(process.cwd(), 'whatsapp-session');
         console.log('WhatsAppBot instance created');
     }
 
     async initialize() {
         try {
             console.log('Launching browser...');
-            this.browser = await chromium.launch({ headless: false });
+            // Launch browser with persistent context
+            this.browser = await chromium.launchPersistentContext(this.userDataDir, {
+                headless: false,
+                viewport: { width: 1280, height: 800 }
+            });
+
             console.log('Browser launched successfully');
 
-            console.log('Creating new page...');
-            this.page = await this.browser.newPage();
+            // Get the default page from the context
+            const pages = this.browser.pages();
+            this.page = pages[0] || await this.browser.newPage();
             this.page.setDefaultTimeout(0);
             console.log('Page created successfully with infinite timeout');
 
-            console.log('Navigating to WhatsApp Web...');
-            await this.page.goto('https://web.whatsapp.com');
-            console.log('WhatsApp Web loaded');
+            // Only navigate to WhatsApp Web if we're not already there
+            const currentUrl = this.page.url();
+            if (!currentUrl.includes('web.whatsapp.com')) {
+                console.log('Navigating to WhatsApp Web...');
+                await this.page.goto('https://web.whatsapp.com');
+                console.log('WhatsApp Web loaded');
+            } else {
+                console.log('Already on WhatsApp Web');
+            }
             
-            console.log('Please scan the QR code to login...');
-            console.log('Waiting for search element to appear (indicates successful login)...');
+            console.log('Waiting for search element to appear...');
             
             // Wait for WhatsApp to load (wait for the search element to appear)
             const searchSelector = 'div._aoq2._ai01 button[aria-label="Search or start new chat"]';
@@ -137,6 +152,7 @@ class WhatsAppBot {
                 content: msg.text
             }));
             console.log(`Prepared ${conversation.length} messages for AI`);
+            console.log(conversation);
 
             console.log('Requesting AI response...');
             const response = await this.openai.chat.completions.create({
@@ -195,9 +211,9 @@ class WhatsAppBot {
     async close() {
         try {
             if (this.browser) {
-                console.log('Closing browser...');
+                console.log('Closing browser context...');
                 await this.browser.close();
-                console.log('Browser closed successfully');
+                console.log('Browser context closed successfully');
             }
         } catch (error) {
             console.error('Error closing browser:', error.message);
