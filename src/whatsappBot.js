@@ -114,7 +114,7 @@ class WhatsAppBot {
         }
     }
 
-    async getLastMessages(count = 50) {
+    async getLastMessages(count = 100) {
         try {
             console.log(`Attempting to fetch last ${count} messages...`);
             const messages = await this.page.evaluate((count) => {

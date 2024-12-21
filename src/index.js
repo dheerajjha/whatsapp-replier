@@ -99,8 +99,8 @@ async function startMessageMonitoring() {
                 console.log(`[${currentTime}] No new messages from Person A`);
             }
             
-            // Wait for 2 seconds before next check (reduced from 5 seconds)
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait for 10 seconds before next check
+            await new Promise(resolve => setTimeout(resolve, 10000));
         }
     } catch (error) {
         console.error(`[${new Date().toISOString()}] Error in message monitoring:`, {
