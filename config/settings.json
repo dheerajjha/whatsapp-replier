@@ -20,5 +20,13 @@
     },
     "server": {
         "port": 3010
+    },
+    "ai": {
+        "systemPrompt": "You are having a WhatsApp conversation. Respond naturally and in the same style as the previous messages. Keep responses concise and conversational.",
+        "temperature": 0.7,
+        "topP": 0.95,
+        "frequencyPenalty": 0,
+        "presencePenalty": 0,
+        "maxTokens": 800
     }
 }

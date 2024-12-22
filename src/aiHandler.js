@@ -1,4 +1,5 @@
 const OpenAI = require('openai');
+const configManager = require('./configManager');
 
 class AIHandler {
     constructor() {
@@ -46,25 +47,28 @@ class AIHandler {
             console.log('Preparing conversation for AI...');
             const conversation = messages.map(msg => ({
                 role: msg.isOutgoing ? 'assistant' : 'user',
-                content: msg.text  // Changed back to simple text content
+                content: msg.text
             }));
             console.log(`Prepared ${conversation.length} messages for AI`);
             console.log(conversation);
+
+            const config = configManager.getConfig();
+            const aiConfig = config.ai;
 
             console.log('Requesting AI response...');
             const response = await this.openai.chat.completions.create({
                 messages: [
                     {
                         role: "system",
-                        content: "You are having a WhatsApp conversation. Respond naturally and in the same style as the previous messages. Keep responses concise and conversational."
+                        content: aiConfig.systemPrompt
                     },
                     ...conversation,
                 ],
-                temperature: 0.7,
-                top_p: 0.95,
-                frequency_penalty: 0,
-                presence_penalty: 0,
-                max_tokens: 800,
+                temperature: aiConfig.temperature,
+                top_p: aiConfig.topP,
+                frequency_penalty: aiConfig.frequencyPenalty,
+                presence_penalty: aiConfig.presencePenalty,
+                max_tokens: aiConfig.maxTokens,
                 stop: null
             });
             console.log('Received AI response successfully');

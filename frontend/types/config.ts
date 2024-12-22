@@ -22,7 +22,17 @@ export interface ServerConfig {
     port: number;
 }
 
+export interface AIConfig {
+    systemPrompt: string;
+    temperature: number;
+    topP: number;
+    frequencyPenalty: number;
+    presencePenalty: number;
+    maxTokens: number;
+}
+
 export interface Config {
     whatsapp: WhatsAppConfig;
     server: ServerConfig;
+    ai: AIConfig;
 } 

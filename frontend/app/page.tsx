@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Config } from '../types/config';
+import AISettings from './components/AISettings';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -100,6 +101,16 @@ export default function Home() {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* AI Settings */}
+                    <AISettings
+                        config={config.ai}
+                        onUpdate={(newAIConfig) => setConfig({
+                            ...config,
+                            ai: newAIConfig
+                        })}
+                        isLoading={isLoading}
+                    />
+
                     {/* Browser Settings */}
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h2 className="text-xl font-semibold mb-4">Browser Settings</h2>
