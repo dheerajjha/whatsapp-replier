@@ -1,0 +1,22 @@
+{
+    "whatsapp": {
+        "browser": {
+            "headless": true,
+            "viewport": {
+                "width": 1280,
+                "height": 800
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"
+        },
+        "monitoring": {
+            "checkInterval": 1000,
+            "maxMessages": 100
+        },
+        "contact": {
+            "name": "Vicky Jha"
+        }
+    },
+    "server": {
+        "port": 3010
+    }
+}

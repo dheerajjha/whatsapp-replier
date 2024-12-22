@@ -1,12 +1,19 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const WhatsAppBot = require('./whatsappBot');
 const AIHandler = require('./aiHandler');
-const fs = require('fs').promises;
-const path = require('path');
+const configManager = require('./configManager');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3010;
+
+// Enable CORS for the Next.js frontend
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 
 app.use(express.json());
 
@@ -23,6 +30,36 @@ console.log('Environment variables loaded:', {
     hasApiKey: !!process.env.AZURE_OPENAI_API_KEY
 });
 
+// Configuration endpoints
+app.get('/config', async (req, res) => {
+    try {
+        const config = await configManager.loadConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Error loading config:', error);
+        res.status(500).json({ error: 'Failed to load configuration' });
+    }
+});
+
+app.post('/config', async (req, res) => {
+    try {
+        const newConfig = await configManager.saveConfig(req.body);
+        // Restart the bot with new configuration
+        if (whatsappBot) {
+            console.log('Restarting bot with new configuration...');
+            monitoringActive = false;
+            await whatsappBot.close();
+            whatsappBot = null;
+            aiHandler = null;
+            await initialize();
+        }
+        res.json(newConfig);
+    } catch (error) {
+        console.error('Error updating config:', error);
+        res.status(500).json({ error: 'Failed to update configuration' });
+    }
+});
+
 // Add session directory cleanup on process exit
 process.on('SIGINT', async () => {
     console.log('Received SIGINT. Cleaning up...');
@@ -32,40 +69,35 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
-async function initializeBot() {
+async function initialize() {
     try {
-        console.log('Starting bot initialization...');
-        console.log('Creating new WhatsAppBot instance...');
+        // Load configuration
+        await configManager.loadConfig();
+        const config = configManager.getConfig();
+
+        console.log('Initializing WhatsApp bot...');
         whatsappBot = new WhatsAppBot();
-        aiHandler = new AIHandler();
-        
-        console.log('Initializing WhatsApp connection...');
         await whatsappBot.initialize();
-        
-        console.log(`Finding and opening chat with ${process.env.TARGET_CONTACT_NAME}...`);
-        await whatsappBot.findAndOpenChat(process.env.TARGET_CONTACT_NAME);
-        
-        // console.log('Sending initial greeting message...');
-        // await whatsappBot.sendMessage('Hi');
-        
-        console.log('Starting message monitoring loop...');
-        if (!monitoringActive) {
-            monitoringActive = true;
-            startMessageMonitoring();
-        }
+
+        console.log('Initializing AI handler...');
+        aiHandler = new AIHandler();
+
+        console.log('Finding and opening chat...');
+        await whatsappBot.findAndOpenChat(config.whatsapp.contact.name);
+
+        console.log('Starting message monitoring...');
+        monitoringActive = true;
+        await startMessageMonitoring();
     } catch (error) {
-        console.error('Failed to initialize bot:', {
-            step: error.message.includes('initialize') ? 'initialization' :
-                  error.message.includes('findAndOpenChat') ? 'finding chat' :
-                  error.message.includes('sendMessage') ? 'sending message' : 'unknown',
-            error: error.message
-        });
+        console.error('Error during initialization:', error);
+        process.exit(1);
     }
 }
 
 async function startMessageMonitoring() {
     try {
         console.log('Starting message monitoring cycle...');
+        const config = configManager.getConfig();
         let lastMessageCount = 0;
         let lastMessageText = '';
 
@@ -74,7 +106,7 @@ async function startMessageMonitoring() {
             console.log(`[${currentTime}] Checking for new messages...`);
             
             console.log('Fetching last messages...');
-            const messages = await whatsappBot.getLastMessages(50);
+            const messages = await whatsappBot.getLastMessages(config.whatsapp.monitoring.maxMessages);
             
             // Check if there are new messages and if the last message is from Person A (not the bot)
             const hasNewMessages = messages.length > lastMessageCount;
@@ -99,8 +131,8 @@ async function startMessageMonitoring() {
                 console.log(`[${currentTime}] No new messages from Person A`);
             }
             
-            // Wait for 10 seconds before next check
-            await new Promise(resolve => setTimeout(resolve, 10000));
+            // Wait for configured interval before next check
+            await new Promise(resolve => setTimeout(resolve, config.whatsapp.monitoring.checkInterval));
         }
     } catch (error) {
         console.error(`[${new Date().toISOString()}] Error in message monitoring:`, {
@@ -136,7 +168,7 @@ app.post('/restart', async (req, res) => {
         }
         
         console.log('Initializing new bot instance...');
-        await initializeBot();
+        await initialize();
         res.json({ status: 'restarting' });
     } catch (error) {
         console.error('Error during restart:', error);
@@ -148,5 +180,5 @@ app.post('/restart', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
     console.log('Starting initial bot setup...');
-    initializeBot();
+    initialize();
 }); 

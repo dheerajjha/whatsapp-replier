@@ -1,24 +1,24 @@
 const { chromium } = require('playwright');
 const path = require('path');
-const fs = require('fs').promises;
+const configManager = require('./configManager');
 
 class WhatsAppBot {
     constructor() {
         this.browser = null;
         this.page = null;
-        // Define the path for storing user data
-        this.userDataDir = path.join(process.cwd(), 'whatsapp-session');
-        console.log('WhatsAppBot instance created');
+        this.userDataDir = path.join(process.cwd(), 'whatsapp-data');
     }
 
     async initialize() {
         try {
             console.log('Launching browser...');
+            const config = configManager.getConfig();
+            
             // Launch browser with persistent context
             this.browser = await chromium.launchPersistentContext(this.userDataDir, {
-                headless: true,
-                viewport: { width: 1280, height: 800 },
-                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36'
+                headless: config.whatsapp.browser.headless,
+                viewport: config.whatsapp.browser.viewport,
+                userAgent: config.whatsapp.browser.userAgent
             });
 
             console.log('Browser launched successfully');
