@@ -235,6 +235,27 @@ export default function Home() {
                                     min="0"
                                 />
                             </div>
+                            <div>
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.whatsapp.monitoring.skipNoMessageWait}
+                                        onChange={(e) => setConfig({
+                                            ...config,
+                                            whatsapp: {
+                                                ...config.whatsapp,
+                                                monitoring: {
+                                                    ...config.whatsapp.monitoring,
+                                                    skipNoMessageWait: e.target.checked
+                                                }
+                                            }
+                                        })}
+                                        className="form-checkbox h-5 w-5 text-blue-500"
+                                    />
+                                    <span>Skip Wait When No Messages</span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-1 ml-7">When enabled, the bot will not wait for the check interval if no new messages are found.</p>
+                            </div>
                         </div>
                     </div>
 

@@ -115,7 +115,7 @@ async function startMessageMonitoring() {
                                       !lastMessage.isOutgoing && 
                                       lastMessage.text !== lastMessageText;
 
-            if (isNewPersonAMessage) {
+            if (isNewPersonAMessage || config.whatsapp.monitoring.skipNoMessageWait) {
                 console.log(`[${currentTime}] New message detected from Person A:`, lastMessage.text);
                 lastMessageCount = messages.length;
                 lastMessageText = lastMessage.text;

@@ -1,3 +1,6 @@
-2024/12/22-10:55:34.555 6103 Reusing MANIFEST /Users/dheeraj.jha/Documents/RealFlutterAP/DecemberMusings2024/whatsapp-replier/whatsapp-data/Default/Local Storage/leveldb/MANIFEST-000001
-2024/12/22-10:55:34.557 6103 Recovering log #4
-2024/12/22-10:55:34.557 6103 Reusing old log /Users/dheeraj.jha/Documents/RealFlutterAP/DecemberMusings2024/whatsapp-replier/whatsapp-data/Default/Local Storage/leveldb/000004.log 
+2024/12/22-11:24:15.304 3a03 Reusing MANIFEST /Users/dheeraj.jha/Documents/RealFlutterAP/DecemberMusings2024/whatsapp-replier/whatsapp-data/Default/Local Storage/leveldb/MANIFEST-000001
+2024/12/22-11:24:15.307 3a03 Recovering log #10
+2024/12/22-11:24:15.308 3a03 Reusing old log /Users/dheeraj.jha/Documents/RealFlutterAP/DecemberMusings2024/whatsapp-replier/whatsapp-data/Default/Local Storage/leveldb/000010.log 
+2024/12/22-11:25:15.926 3503 Level-0 table #13: started
+2024/12/22-11:25:15.968 3503 Level-0 table #13: 14412 bytes OK
+2024/12/22-11:25:15.978 3503 Delete type=0 #10

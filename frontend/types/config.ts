@@ -10,6 +10,7 @@ export interface WhatsAppConfig {
     monitoring: {
         checkInterval: number;
         maxMessages: number;
+        skipNoMessageWait: boolean;
     };
     contact: {
         name: string;

@@ -71,7 +71,7 @@ class WhatsAppBot {
             
             // Add a small delay to let search results load
             console.log('Waiting for search results to load...');
-            await this.page.waitForTimeout(5000);
+            await this.page.waitForTimeout(2000);
             
             // Find all contacts and match the exact name
             console.log('Looking for contact with exact name match...');
