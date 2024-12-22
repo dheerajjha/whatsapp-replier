@@ -14,9 +14,9 @@ module.exports = {
     },
     {
       name: 'whatsapp-bot-frontend',
-      script: 'node_modules/next/dist/bin/next',
+      script: 'npm',
       args: 'start',
-      cwd: './',
+      cwd: './frontend',
       watch: false,
       env: {
         NODE_ENV: 'production',
