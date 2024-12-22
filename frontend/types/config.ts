@@ -11,6 +11,7 @@ export interface WhatsAppConfig {
         checkInterval: number;
         maxMessages: number;
         skipNoMessageWait: boolean;
+        pauseBot: boolean;
     };
     contact: {
         name: string;

@@ -11,10 +11,11 @@
         "monitoring": {
             "checkInterval": 5000,
             "maxMessages": 100,
-            "skipNoMessageWait": false
+            "skipNoMessageWait": true,
+            "pauseBot": true
         },
         "contact": {
-            "name": "Vicky Jha"
+            "name": "Alone"
         }
     },
     "server": {

@@ -105,6 +105,13 @@ async function startMessageMonitoring() {
             const currentTime = new Date().toISOString();
             console.log(`[${currentTime}] Checking for new messages...`);
             
+            // Check if bot is paused
+            if (config.whatsapp.monitoring.pauseBot) {
+                console.log('Bot is paused. Skipping message check.');
+                await new Promise(resolve => setTimeout(resolve, config.whatsapp.monitoring.checkInterval));
+                continue;
+            }
+            
             console.log('Fetching last messages...');
             const messages = await whatsappBot.getLastMessages(config.whatsapp.monitoring.maxMessages);
             
