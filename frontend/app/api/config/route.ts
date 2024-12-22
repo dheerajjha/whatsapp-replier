@@ -1,27 +1,9 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
-function getBackendUrl() {
-    // In production, use the host header to determine the backend URL
-    const headersList = headers();
-    const host = headersList.get('host');
-    
-    // If we're in development, use localhost
-    if (process.env.NODE_ENV === 'development') {
-        return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-    }
-    
-    // In production, construct the URL using the host
-    // Remove the port if present and use the IP/domain
-    const domain = host?.split(':')[0];
-    return `http://${domain}:3000`;  // Assuming your backend runs on port 3000
-}
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3010';
 
 export async function GET() {
     try {
-        const BACKEND_URL = getBackendUrl();
-        console.log('Using backend URL:', BACKEND_URL); // For debugging
-
         const response = await fetch(`${BACKEND_URL}/config`, {
             credentials: 'include',
             headers: {
@@ -46,7 +28,6 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const BACKEND_URL = getBackendUrl();
         const body = await request.json();
         const response = await fetch(`${BACKEND_URL}/config`, {
             method: 'POST',
